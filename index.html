@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wordle Clone</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+    }
+    #game-board {
+      display: grid;
+      gap: 5px;
+      grid-template-rows: repeat(6, 1fr);
+      margin-bottom: 20px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+    }
+    .tile {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #ddd;
+      background-color: white;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #000;
+      transition: transform 0.5s ease-in-out, background-color 0.5s;
+    }
+    .tile.correct {
+      background-color: #6aaa64; /* Green */
+      color: white;
+    }
+    .tile.present {
+      background-color: #c9b458; /* Yellow */
+      color: white;
+    }
+    .tile.absent {
+      background-color: #787c7e; /* Gray */
+      color: white;
+    }
+    .flip {
+      transform: rotateX(180deg);
+    }
+    #end-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      display: none; /* Hidden by default */
+    }
+    #end-screen button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #6aaa64;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #end-screen button:hover {
+      background-color: #5c9959;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Wordle Clone</h1>
+    <div id="game-board">
+      <div class="row">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+      </div>
+      <div class="row">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+      </div>
+      <div class="row">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+      </div>
+      <div class="row">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+      </div>
+      <div class="row">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+      </div>
+      <div class="row">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+      </div>
+    </div>
+    <button onclick="resetGame()">Restart</button>
+  </div>
+  <div id="end-screen">
+    <div id="end-message"></div>
+    <button onclick="resetGame()">Play Again</button>
+  </div>
+  <script>
+    const words = ["apple", "grape", "beach", "clown", "daisy", "flame", "glove", "house", "jelly", "kites", "lemon", "mango", "night", "ocean", "pearl", "quest", "robot", "sugar", "tiger", "vivid"];
+    let targetWord = words[Math.floor(Math.random() * words.length)];
+    let currentRow = 0;
+    let currentGuess = '';
+
+    document.addEventListener('keydown', handleKeyPress);
+
+    function handleKeyPress(event) {
+      const key = event.key.toLowerCase();
+      if (key === 'enter' && currentGuess.length === 5) {
+        checkGuess();
+        currentGuess = '';
+      } else if (key === 'backspace' && currentGuess.length > 0) {
+        removeLastLetter();
+      } else if (/^[a-z]$/.test(key) && currentGuess.length < 5) {
+        addLetter(key);
+      }
+    }
+
+    function addLetter(letter) {
+      currentGuess += letter;
+      const row = document.querySelectorAll(".row")[currentRow];
+      const tiles = row.querySelectorAll(".tile");
+      tiles[currentGuess.length - 1].textContent = letter;
+    }
+
+    function removeLastLetter() {
+      currentGuess = currentGuess.slice(0, -1);
+      const row = document.querySelectorAll(".row")[currentRow];
+      const tiles = row.querySelectorAll(".tile");
+      tiles[currentGuess.length].textContent = '';
+    }
+
+    function checkGuess() {
+      const row = document.querySelectorAll(".row")[currentRow];
+      const tiles = row.querySelectorAll(".tile");
+
+      currentGuess.split('').forEach((letter, index) => {
+        setTimeout(() => {
+          const tile = tiles[index];
+          tile.classList.add('flip');
+          
+          setTimeout(() => {
+            if (targetWord[index] === letter) {
+              tile.classList.add('correct');
+            } else if (targetWord.includes(letter)) {
+              tile.classList.add('present');
+            } else {
+              tile.classList.add('absent');
+            }
+            tile.classList.remove('flip');
+          }, 250);
+        }, 300 * index);
+      });
+
+      setTimeout(() => {
+        currentRow++;
+        if (currentGuess === targetWord) {
+          showEndScreen('Congratulations! You guessed the word!');
+        } else if (currentRow === 6) {
+          showEndScreen(`Nice try! The word was ${targetWord}`);
+        }
+      }, 300 * currentGuess.length + 500);
+    }
+
+    function showEndScreen(message) {
+      const endScreen = document.getElementById('end-screen');
+      const endMessage = document.getElementById('end-message');
+      endMessage.textContent = message;
+      endScreen.style.display = 'flex';
+    }
+
+    function resetGame() {
+      targetWord = words[Math.floor(Math.random() * words.length)];
+      currentRow = 0;
+      currentGuess = '';
+      document.querySelectorAll('.tile').forEach(tile => {
+        tile.textContent = '';
+        tile.className = 'tile';
+      });
+      document.getElementById('end-screen').style.display = 'none';
+      document.addEventListener('keydown', handleKeyPress);
+    }
+  </script>
+</body>
+</html>
+
